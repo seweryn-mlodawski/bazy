@@ -2,6 +2,7 @@
 
 import sqlite3
 from sqlite3 import Error
+from tkinter import INSERT
 
 def create_connection(db_file):
    """ create a database connection to the SQLite database
@@ -62,4 +63,25 @@ if __name__ == "__main__":
    if conn is not None:
        execute_sql(conn, create_projects_sql)
        execute_sql(conn, create_tasks_sql)
-       conn.close()
+       
+       insert_project_sql = """
+       INSERT INTO projects (id, nazwa, start_date, end_date)
+       VALUES (?, ?, ?, ?);
+       """
+       # powyżej i poniżej - jest to lepszy sposób wstawiania danych niż bezpośrednie wpisywanie wartości w SQL
+       # ze względu na bezpieczeństwo przed SQL Injection
+
+       project_data = [
+           (1, "Zrób to dobrze", "2024-01-01 00:00:00", "2024-06-30 23:59:59"),
+            (2, "Naucz się Pythona", "2024-02-01 00:00:00", "2024-07-31 23:59:59"),
+            (3, "Zbuduj aplikację", "2024-03-01 00:00:00", "2024-08-31 23:59:59")
+       ]
+       
+       c = conn.cursor()
+       for project in project_data:
+           c.execute(insert_project_sql, project)
+       conn.commit()
+       #execute_sql(conn, insert_project_sql)
+       #
+       #conn.commit()
+       #conn.close()
