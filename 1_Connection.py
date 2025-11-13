@@ -27,6 +27,24 @@ def create_connection_in_memory():
        if conn:
            conn.close()
 
+from sqlite3 import Error
+
+def execute_sql(conn, sql):
+   """ Execute sql
+   :param conn: Connection object
+   :param sql: a SQL script
+   :return:
+   """
+   try:
+       c = conn.cursor()
+       c.execute(sql)
+   except Error as e:
+       print(e)
+
 if __name__ == '__main__':
    create_connection(r"database.db")
    create_connection_in_memory()
+
+from sqlite3 import Error
+
+   
