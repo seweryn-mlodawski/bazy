@@ -1,18 +1,18 @@
 # ex_02_create_tables.py
 
-import sqlite3
-from sqlite3 import Error
-from tkinter import INSERT
+import sqlite3 # import the sqlite3 library
+from sqlite3 import Error # import the Error class
+from tkinter import INSERT # import INSERT constant - 
 
-def create_connection(db_file):
+def create_connection(db_file): 
    """ create a database connection to the SQLite database
        specified by db_file
    :param db_file: database file
    :return: Connection object or None
    """
-   conn = None
+   conn = None # inicjalizacja zmiennej conn jako None
    try:
-       conn = sqlite3.connect(db_file)
+       conn = sqlite3.connect(db_file) # próba połączenia z bazą danych
        return conn
    except Error as e:
        print(e)
@@ -26,8 +26,8 @@ def execute_sql(conn, sql):
    :return:
    """
    try:
-       c = conn.cursor()
-       c.execute(sql)
+       c = conn.cursor() # utworzenie kursora
+       c.execute(sql) # kursor wykonana zapytania SQL
    except Error as e:
        print(e)
 
@@ -77,11 +77,16 @@ if __name__ == "__main__":
             (3, "Zbuduj aplikację", "2024-03-01 00:00:00", "2024-08-31 23:59:59")
        ]
        
-       c = conn.cursor()
+       c = conn.cursor() # utworzenie kursora
+       # dla każdego projektu w liście project_data wykonaj zapytanie insert_project_sql z danymi projektu
        for project in project_data:
-           c.execute(insert_project_sql, project)
-       conn.commit()
-       #execute_sql(conn, insert_project_sql)
-       #
-       #conn.commit()
-       #conn.close()
+           c.execute(insert_project_sql, project) # wykonanie zapytania z danymi z listy
+       conn.commit() # zatwierdzenie zmian w bazie danych
+       
+       ## Krok po kroku, co się dzieje:
+    #    1. **`c.execute(sql, project)`** — kursor wysyła zapytanie SQL do bazy z danymi z krotki `project`
+    #    2. Kursor wstawia każdy projekt do tabeli `projects`
+    #    3. **`conn.commit()`** — zatwierdza wszystkie zmiany (bez tego nic się nie zapisze!)
+       
+       
+       
