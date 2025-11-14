@@ -62,6 +62,7 @@ def create_warehouses_table(conn):
     except Error as e:
         print(f"✗ Błąd tworzenia tabeli: {e}")
 
+#=======================================================
 # Dodawanie danych do tabeli sensors
 def add_sensor(conn, model, typ, piny):
     """
@@ -84,7 +85,35 @@ def add_sensor(conn, model, typ, piny):
     except Error as e:
         print(f"✗ Błąd dodawania czujnika: {e}")
         return None # zwrócenie None w przypadku błędu
-     
+    
+    #=======================================================
+    # Dodawanie danych do tabeli warehouses    
+def add_warehouse(conn, sensor_id, nazwa_magazynu, alejka, regał, polka, kuweta, ilosc_sztuk):
+    """
+    Dodaj nowy magazyn do tabeli warehouses
+    :param conn: obiekt Connection
+    :param sensor_id: id czujnika powiązanego z magazynem
+    :param nazwa_magazynu: nazwa magazynu
+    :param alejka: numer alejki
+    :param regał: numer regału
+    :param polka: numer półki
+    :param kuweta: numer kuwety
+    :param ilosc_sztuk: ilość sztuk w magazynie
+    """
+    sql = '''
+    INSERT INTO warehouses(sensor_id, nazwa_magazynu, alejka, regał, polka, kuweta, ilosc_sztuk)
+    VALUES(?,?,?,?,?,?,?)
+    '''
+    #=======================================================
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, (sensor_id, nazwa_magazynu, alejka, regał, polka, kuweta, ilosc_sztuk))
+        conn.commit()
+        print(f"✓ Nowy magazyn - {nazwa_magazynu} dodany do tabeli 'warehouses'")
+        return cur.lastrowid # zwrócenie id nowo dodanego rekordu
+    except Error as e:
+        print(f"✗ Błąd dodawania magazynu: {e}")
+        return None # zwrócenie None w przypadku błędu     
 
 # Główna część skryptu    
 if __name__ == "__main__":
@@ -102,7 +131,14 @@ if __name__ == "__main__":
     add_sensor(conn, "HC-SR04", "Odległość", 4)
     add_sensor(conn, "BMP180", "Ciśnienie i Temperatura", 2)
     add_sensor(conn, "MQ-2", "Gaz", 1)
-
+    
+    # Krok 4 - dodawanie przykładowych danych do tabeli warehouses
+    print("\nDodawanie magazynów do tabeli 'warehouses':")
+    print("-"*40)
+    add_warehouse(conn, 1, "Magazyn A", 1, 1, 1, 1, 100) #sensor_id, nazwa_magazynu, alejka, regał, polka, kuweta, ilosc_sztuk
+    add_warehouse(conn, 2, "Magazyn B", 1, 2, 1, 1, 50)
+    add_warehouse(conn, 3, "Magazyn C", 2, 1, 1, 1, 75)
+    add_warehouse(conn, 4, "Magazyn A", 2, 2, 1, 1, 200)
 
     # Krok 3 - zamknięcie połączenia
     if conn:
