@@ -61,6 +61,29 @@ def create_warehouses_table(conn):
         print("✓ Tabela 'warehouses' utworzona")
     except Error as e:
         print(f"✗ Błąd tworzenia tabeli: {e}")
+
+# Dodawanie danych do tabeli sensors
+def add_sensor(conn, model, typ, piny):
+    """
+    Dodaj nowy czujnik do tabeli sensors
+    :param conn: obiekt Connection
+    :param model: model czujnika
+    :param typ: typ czujnika
+    :param piny: liczba pinów czujnika
+    """
+    sql = '''
+    INSERT INTO sensors(model, typ, piny)
+    VALUES(?,?,?)
+    '''
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, (model, typ, piny))
+        conn.commit()
+        print(f"✓ Nowy czujnik - {model} dodany do tabeli 'sensors'")
+        return cur.lastrowid # zwrócenie id nowo dodanego rekordu
+    except Error as e:
+        print(f"✗ Błąd dodawania czujnika: {e}")
+        return None # zwrócenie None w przypadku błędu
      
 
 # Główna część skryptu    
