@@ -94,6 +94,16 @@ if __name__ == "__main__":
     # Krok 2 - tworzenie tabeli sensors i warehouses
     create_sensors_table(conn)
     create_warehouses_table(conn)
+
+    # Krok 3 - dodawanie przykładowych danych do tabeli sensors
+    print("\nDodawanie czujników do tabeli 'sensors':")
+    print("-"*40)
+    add_sensor(conn, "DHT11", "Temperatura i Wilgotność", 3)
+    add_sensor(conn, "HC-SR04", "Odległość", 4)
+    add_sensor(conn, "BMP180", "Ciśnienie i Temperatura", 2)
+    add_sensor(conn, "MQ-2", "Gaz", 1)
+
+
     # Krok 3 - zamknięcie połączenia
     if conn:
         conn.close()
