@@ -112,10 +112,43 @@ def add_warehouse(conn, sensor_id, nazwa_magazynu, alejka, regał, polka, kuweta
         print(f"✓ Nowy magazyn - {nazwa_magazynu} dodany do tabeli 'warehouses'")
         return cur.lastrowid # zwrócenie id nowo dodanego rekordu
     except Error as e:
-        print(f"✗ Błąd dodawania magazynu: {e}")
-        return None # zwrócenie None w przypadku błędu     
-
-# Główna część skryptu    
+            print(f"✗ Błąd dodawania magazynu: {e}")
+            return None # zwrócenie None w przypadku błędu
+    
+    #SELECT czujników i magazynów
+def get_sensors_in_warehouses(conn):
+    """
+    Pobierz listę czujników wraz z informacjami o magazynach
+    :param conn: obiekt Connection
+    """
+    sql = """
+SELECT
+    s.id AS 'Sensor ID',
+    s.model AS 'Model',
+    s.typ AS 'Typ',
+    s.piny AS 'Piny',
+    w.nazwa_magazynu AS 'Magazyn',
+    w.alejka AS 'Alejka',
+    w.regał AS 'Regał', 
+    w.polka AS 'Półka',
+    w.kuweta AS 'Kuweta',
+    w.ilosc_sztuk AS 'Ilość (szt.)'
+FROM sensors s
+INNER JOIN warehouses w ON s.id = w.sensor_id
+ORDER BY w.nazwa_magazynu, w.alejka, w.regał, w.polka, w.kuweta
+    """        
+    try:
+        cur = conn.cursor()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        return rows
+    except Error as e:
+        print(f"✗ Błąd pobierania danych: {e}")
+        return []
+    
+#=======================================================
+# Główna część skryptu
+# ======================================================   
 if __name__ == "__main__":
     conn = create_connection("sensors.db")
     print(f"✓ Połączenie utworzone {conn} - utworzone zostało sensors.db")
@@ -127,7 +160,7 @@ if __name__ == "__main__":
     # Krok 3 - dodawanie przykładowych danych do tabeli sensors
     print("\nDodawanie czujników do tabeli 'sensors':")
     print("-"*40)
-    add_sensor(conn, "DHT11", "Temperatura i Wilgotność", 3)
+    add_sensor(conn, "DHT11", "Temperatura i Wilgotność", 3) #sensor_id, model, typ, piny
     add_sensor(conn, "HC-SR04", "Odległość", 4)
     add_sensor(conn, "BMP180", "Ciśnienie i Temperatura", 2)
     add_sensor(conn, "MQ-2", "Gaz", 1)
@@ -140,7 +173,339 @@ if __name__ == "__main__":
     add_warehouse(conn, 3, "Magazyn C", 2, 1, 1, 1, 75)
     add_warehouse(conn, 4, "Magazyn A", 2, 2, 1, 1, 200)
 
-    # Krok 3 - zamknięcie połączenia
+    # Krok 5 - pobieranie i wyświetlanie czujników wraz z informacjami o magazynach
+    print("\nLista czujników wraz z informacjami o magazynach:")
+    print("-"*70)
+
+    data = get_sensors_in_warehouses(conn)
+
+    # Tu zmienić czebaby
+
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+        else:
+            print("Brak danych w bazie do wyświetlenia.")
+
+        print("\n" + "="*80)
+
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+if data:
+        counter = 1
+        for row in data:
+            print(f"\n🔹 CZUJNIK #{counter}:")
+            print(f"   └─ ID czujnika:      {row[0]}")
+            print(f"   └─ Model:            {row[1]}")
+            print(f"   └─ Typ:              {row[2]}")
+            print(f"   └─ Liczba pinów:     {row[3]}")
+            print(f"   └─ Magazyn:          {row[4]}")
+            print(f"   └─ Lokalizacja:")
+            print(f"      ├─ Alejka:        {row[5]}")
+            print(f"      ├─ Regał:         {row[6]}")
+            print(f"      ├─ Półka:         {row[7]}")
+            print(f"      └─ Kuweta:        {row[8]}")
+            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
+            counter += 1
+    else:
+        print("Brak danych w bazie do wyświetlenia.")
+
+    print("\n" + "="*80)
+        
+            
+            
+    # Krok 5 - zamknięcie połączenia
     if conn:
         conn.close()
         print("✓ Połączenie zamknięte - sensors.db zapisane na dysku")
