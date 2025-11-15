@@ -1,4 +1,5 @@
 import sqlite3
+import os # do obsługi ścieżek plików - będzie usuwanie poprzedniej bazy przy testach
 from sqlite3 import Error
 
 def create_connection(db_file):
@@ -200,6 +201,14 @@ def update_warehouse_quantity(conn, warehouse_id, new_quantity):
 # ======================================================   
 
 if __name__ == "__main__":
+
+    # Usuwanie istniejącej bazy danych przed utworzeniem nowej (dla celów testowych)
+    # Zakomentować poniższą sekcję (3 linie) jeśli nie chcemy usuwać poprzedniej bazy przy każdym uruchomieniu skryptu, 
+    if os.path.exists("sensors.db"):
+        os.remove("sensors.db")
+        print("✓ Istniejąca baza danych 'sensors.db' została usunięta.")
+    
+    # Krok 1 - nawiązanie połączenia z bazą danych
     conn = create_connection("sensors.db")
     print(f"✓ Połączenie utworzone {conn} - utworzone zostało sensors.db\n")
     
