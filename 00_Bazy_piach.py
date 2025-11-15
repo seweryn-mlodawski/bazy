@@ -22,13 +22,13 @@ def create_sensors_table(conn):
     Utwórz tabelę sensors w bazie danych
     """
     sql = """
-     CREATE TABLE IF NOT EXISTS sensors (
-            id INTEGER PRIMARY KEY,
-            model TEXT NOT NULL,
-            typ TEXT,
-            piny INTEGER NOT NULL
-        );
-        """
+    CREATE TABLE IF NOT EXISTS sensors (
+        id INTEGER PRIMARY KEY,
+        model TEXT NOT NULL,
+        typ TEXT,
+        piny INTEGER NOT NULL
+    );
+    """
     try:
         cur = conn.cursor() # utworzenie kursora
         cur.execute(sql)    # wykonanie polecenia SQL do utworzenia tabeli sensors
@@ -42,18 +42,18 @@ def create_warehouses_table(conn):
     Utwórz tabelę warehouses w bazie danych
     """
     sql = """
-     CREATE TABLE IF NOT EXISTS warehouses (
-            id INTEGER PRIMARY KEY,
-            sensor_id INTEGER NOT NULL,
-            nazwa_magazynu TEXT NOT NULL,
-            alejka INTEGER NOT NULL,
-            regał INTEGER NOT NULL,
-            polka INTEGER NOT NULL,
-            kuweta INTEGER NOT NULL,
-            ilosc_sztuk INTEGER NOT NULL,
-            FOREIGN KEY (sensor_id) REFERENCES sensors (id)            
-        );
-        """
+    CREATE TABLE IF NOT EXISTS warehouses (
+        id INTEGER PRIMARY KEY,
+        sensor_id INTEGER NOT NULL,
+        nazwa_magazynu TEXT NOT NULL,
+        alejka INTEGER NOT NULL,
+        regał INTEGER NOT NULL,
+        polka INTEGER NOT NULL,
+        kuweta INTEGER NOT NULL,
+        ilosc_sztuk INTEGER NOT NULL,
+        FOREIGN KEY (sensor_id) REFERENCES sensors (id)            
+    );
+    """
     try:
         cur = conn.cursor() # utworzenie kursora
         cur.execute(sql)    # wykonanie polecenia SQL do utworzenia tabeli warehouses
@@ -64,6 +64,7 @@ def create_warehouses_table(conn):
 
 #=======================================================
 # Dodawanie danych do tabeli sensors
+#=======================================================
 def add_sensor(conn, model, typ, piny):
     """
     Dodaj nowy czujnik do tabeli sensors
@@ -87,7 +88,8 @@ def add_sensor(conn, model, typ, piny):
         return None # zwrócenie None w przypadku błędu
     
     #=======================================================
-    # Dodawanie danych do tabeli warehouses    
+    # Dodawanie danych do tabeli warehouses
+    #=======================================================    
 def add_warehouse(conn, sensor_id, nazwa_magazynu, alejka, regał, polka, kuweta, ilosc_sztuk):
     """
     Dodaj nowy magazyn do tabeli warehouses
@@ -121,6 +123,7 @@ def get_sensors_in_warehouses(conn):
     Pobierz listę czujników wraz z informacjami o magazynach
     :param conn: obiekt Connection
     """
+    #Na razie zostawiam w takiej formie, jak będzie wywalało to usunąć po ASasch
     sql = """
 SELECT
     s.id AS 'Sensor ID',
@@ -146,12 +149,59 @@ ORDER BY w.nazwa_magazynu, w.alejka, w.regał, w.polka, w.kuweta
         print(f"✗ Błąd pobierania danych: {e}")
         return []
     
+    #POBRANIE unikalnych czujników
+def get_unique_sensors(conn):
+    """
+    Pobierz unikalne czujniki z tabeli sensors
+    :param conn: obiekt Connection
+    return: lista unikalnych czujników
+    """
+    sql = """
+    SELECT DISTINCT
+      id,
+      model,
+      typ,
+      piny
+      FROM sensors
+      ORDER BY id
+      """
+    try:
+        cur = conn.cursor()
+        cur.execute(sql)
+        rows = cur.fetchall()
+        return rows
+    except Error as e:
+        print(f"✗ Błąd pobierania unikalnych czujników: {e}")
+        return []
+
+    #UPDATE tabeli warehouses - aktualizacja ilości sztuk
+def update_warehouse_quantity(conn, warehouse_id, new_quantity):
+    """
+    Zaktualizuj ilość sztuk w magazynie
+    :param conn: połączenie z bazą danych
+    :param warehouse_id: ID rekordu w tabeli warehouses
+    :param new_quantity: nowa ilość sztuk
+    """
+    sql = '''
+    UPDATE warehouses
+    SET ilosc_sztuk = ?
+    WHERE id = ?
+    '''
+    try:
+        cur = conn.cursor()
+        cur.execute(sql, (new_quantity, warehouse_id))
+        conn.commit()
+        print(f"✓ Zaktualizowano ilość sztuk w magazynie ID {warehouse_id} na {new_quantity}")
+    except Error as e:
+        print(f"✗ Błąd aktualizacji ilości sztuk: {e}")
+    
 #=======================================================
 # Główna część skryptu
 # ======================================================   
+
 if __name__ == "__main__":
     conn = create_connection("sensors.db")
-    print(f"✓ Połączenie utworzone {conn} - utworzone zostało sensors.db")
+    print(f"✓ Połączenie utworzone {conn} - utworzone zostało sensors.db\n")
     
     # Krok 2 - tworzenie tabeli sensors i warehouses
     create_sensors_table(conn)
@@ -173,336 +223,55 @@ if __name__ == "__main__":
     add_warehouse(conn, 3, "Magazyn C", 2, 1, 1, 1, 75)
     add_warehouse(conn, 4, "Magazyn A", 2, 2, 1, 1, 200)
 
-    # Krok 5 - pobieranie i wyświetlanie czujników wraz z informacjami o magazynach
-    print("\nLista czujników wraz z informacjami o magazynach:")
+    # Krok 5 - pobieranie i wyświetlanie unikalnych czujników wraz z magazynami
+    print("\nLista unikalnych czujników wraz w tabeli 'sensors' :")
     print("-"*70)
-
-    data = get_sensors_in_warehouses(conn)
-
-    # Tu zmienić czebaby
-
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-        else:
-            print("Brak danych w bazie do wyświetlenia.")
-
-        print("\n" + "="*80)
-
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
+    unique_sensors = get_unique_sensors(conn)
+    if unique_sensors:
+        for sensor in unique_sensors:
+            print(f"ID: {sensor[0]} | Model: {sensor[1]} | Typ: {sensor[2]} | Piny: {sensor[3]}")
     else:
-        print("Brak danych w bazie do wyświetlenia.")
+        print("Brak unikalnych czujników do wyświetlenia.")
 
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
+    #data = get_sensors_in_warehouses(conn)
 
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
+    # Wyświetlanie danych
 
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
+#    data = get_sensors_in_warehouses(conn)
+#
+#print("\nLista czujników wraz z informacjami o magazynach:\n")
+#
+#if data:
+#    for idx, row in enumerate(data, start=1):
+#        print(f"Czujnik #{idx}:")
+#        print(f"  ID czujnika:      {row[0]}")
+#        print(f"  Model:            {row[1]}")
+#        print(f"  Typ:              {row[2]}")
+#        print(f"  Liczba pinów:     {row[3]}")
+#        print(f"  Magazyn:          {row[4]}")
+#        print(f"  Lokalizacja magazynu:")
+#        print(f"    Alejka:         {row[5]}")
+#        print(f"    Regał:          {row[6]}")
+#        print(f"    Półka:          {row[7]}")
+#        print(f"    Kuweta:         {row[8]}")
+#        print(f"  Ilość sztuk:      {row[9]}")
+#        print("-"*40)
+#else:
+#    print("Brak danych do wyświetlenia.")
 
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
+#    # Krok 5a - pobranie i wyświetlenie unikalnych czujników
+#    print("\nLista unikalnych czujników w tabeli 'sensors':")
+#    print("-"*40)
+#    unique_sensors = get_unique_sensors(conn)
+#    if unique_sensors:
+#        for idx, sensor in enumerate(unique_sensors, start=1): #enumerate zwraca indeks i wartość
+#            print(f"ID: {sensor[0]} | Model: {sensor[1]} | Typ: {sensor[2]} | Piny: {sensor[3]}")
+#    else:
+#        print("Brak unikalnych czujników do wyświetlenia.")
 
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-if data:
-        counter = 1
-        for row in data:
-            print(f"\n🔹 CZUJNIK #{counter}:")
-            print(f"   └─ ID czujnika:      {row[0]}")
-            print(f"   └─ Model:            {row[1]}")
-            print(f"   └─ Typ:              {row[2]}")
-            print(f"   └─ Liczba pinów:     {row[3]}")
-            print(f"   └─ Magazyn:          {row[4]}")
-            print(f"   └─ Lokalizacja:")
-            print(f"      ├─ Alejka:        {row[5]}")
-            print(f"      ├─ Regał:         {row[6]}")
-            print(f"      ├─ Półka:         {row[7]}")
-            print(f"      └─ Kuweta:        {row[8]}")
-            print(f"   └─ Ilość w magazynie: {row[9]} szt.")
-            counter += 1
-    else:
-        print("Brak danych w bazie do wyświetlenia.")
-
-    print("\n" + "="*80)
-        
+    # Krok 6 - aktualizacja ilości sztuk w magazynie (UPDATE)
+    print("\nAktualizacja ilości sztuk w magazynie ID 2 na 140:")
+    update_warehouse_quantity(conn, 2, 140)
             
             
     # Krok 5 - zamknięcie połączenia
