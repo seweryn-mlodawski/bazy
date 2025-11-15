@@ -1,5 +1,4 @@
 import sqlite3
-import os # do obsługi ścieżek plików - będzie usuwanie poprzedniej bazy przy testach
 from sqlite3 import Error
 
 def create_connection(db_file):
@@ -38,7 +37,7 @@ def create_sensors_table(conn):
     except Error as e:
         print(f"✗ Błąd tworzenia tabeli: {e}")
 
-def create_warehouses_table(conn):
+def create_warehouses_table(conn):  
     """
     Utwórz tabelę warehouses w bazie danych
     """
@@ -195,6 +194,18 @@ def update_warehouse_quantity(conn, warehouse_id, new_quantity):
         print(f"✓ Zaktualizowano ilość sztuk w magazynie ID {warehouse_id} na {new_quantity}")
     except Error as e:
         print(f"✗ Błąd aktualizacji ilości sztuk: {e}")
+
+    #DELETE wszystkich rekordów z tabel
+def clear_all_tables(conn):
+    """Usuń wszystkie rekordy z tabel (nie sam plik)"""
+    try:
+        cur = conn.cursor()
+        cur.execute("DELETE FROM warehouses")  # Najpierw tabela zależna
+        cur.execute("DELETE FROM sensors")     # Potem tabela niezależna
+        conn.commit()
+        print("✓ Wyczyszczone wszystkie tabele")
+    except Error as e:
+        print(f"✗ Błąd czyszczenia tabel: {e}")
     
 #=======================================================
 # Główna część skryptu
@@ -202,17 +213,16 @@ def update_warehouse_quantity(conn, warehouse_id, new_quantity):
 
 if __name__ == "__main__":
 
-    # Usuwanie istniejącej bazy danych przed utworzeniem nowej (dla celów testowych)
-    # Zakomentować poniższą sekcję (3 linie) jeśli nie chcemy usuwać poprzedniej bazy przy każdym uruchomieniu skryptu, 
-    if os.path.exists("sensors.db"):
-        os.remove("sensors.db")
-        print("✓ Istniejąca baza danych 'sensors.db' została usunięta.")
-    
     # Krok 1 - nawiązanie połączenia z bazą danych
     conn = create_connection("sensors.db")
     print(f"✓ Połączenie utworzone {conn} - utworzone zostało sensors.db\n")
     
-    # Krok 2 - tworzenie tabeli sensors i warehouses
+    #!======================================================
+    # Czyszczenie tabel jeśli baza już istniała - odkomentuj poniższą linię, aby wyczyścić tabele przy każdym uruchomieniu
+    #clear_all_tables(conn)
+    #!=======================================================
+
+        # Krok 2 - tworzenie tabeli sensors i warehouses
     create_sensors_table(conn)
     create_warehouses_table(conn)
 
@@ -223,7 +233,7 @@ if __name__ == "__main__":
     add_sensor(conn, "HC-SR04", "Odległość", 4)
     add_sensor(conn, "BMP180", "Ciśnienie i Temperatura", 2)
     add_sensor(conn, "MQ-2", "Gaz", 1)
-    
+
     # Krok 4 - dodawanie przykładowych danych do tabeli warehouses
     print("\nDodawanie magazynów do tabeli 'warehouses':")
     print("-"*40)
@@ -231,7 +241,6 @@ if __name__ == "__main__":
     add_warehouse(conn, 2, "Magazyn B", 1, 2, 1, 1, 50)
     add_warehouse(conn, 3, "Magazyn C", 2, 1, 1, 1, 75)
     add_warehouse(conn, 4, "Magazyn A", 2, 2, 1, 1, 200)
-
     # Krok 5 - pobieranie i wyświetlanie unikalnych czujników wraz z magazynami
     print("\nLista unikalnych czujników wraz w tabeli 'sensors' :")
     print("-"*70)
@@ -242,47 +251,10 @@ if __name__ == "__main__":
     else:
         print("Brak unikalnych czujników do wyświetlenia.")
 
-    #data = get_sensors_in_warehouses(conn)
-
-    # Wyświetlanie danych
-
-#    data = get_sensors_in_warehouses(conn)
-#
-#print("\nLista czujników wraz z informacjami o magazynach:\n")
-#
-#if data:
-#    for idx, row in enumerate(data, start=1):
-#        print(f"Czujnik #{idx}:")
-#        print(f"  ID czujnika:      {row[0]}")
-#        print(f"  Model:            {row[1]}")
-#        print(f"  Typ:              {row[2]}")
-#        print(f"  Liczba pinów:     {row[3]}")
-#        print(f"  Magazyn:          {row[4]}")
-#        print(f"  Lokalizacja magazynu:")
-#        print(f"    Alejka:         {row[5]}")
-#        print(f"    Regał:          {row[6]}")
-#        print(f"    Półka:          {row[7]}")
-#        print(f"    Kuweta:         {row[8]}")
-#        print(f"  Ilość sztuk:      {row[9]}")
-#        print("-"*40)
-#else:
-#    print("Brak danych do wyświetlenia.")
-
-#    # Krok 5a - pobranie i wyświetlenie unikalnych czujników
-#    print("\nLista unikalnych czujników w tabeli 'sensors':")
-#    print("-"*40)
-#    unique_sensors = get_unique_sensors(conn)
-#    if unique_sensors:
-#        for idx, sensor in enumerate(unique_sensors, start=1): #enumerate zwraca indeks i wartość
-#            print(f"ID: {sensor[0]} | Model: {sensor[1]} | Typ: {sensor[2]} | Piny: {sensor[3]}")
-#    else:
-#        print("Brak unikalnych czujników do wyświetlenia.")
-
     # Krok 6 - aktualizacja ilości sztuk w magazynie (UPDATE)
-    print("\nAktualizacja ilości sztuk w magazynie ID 2 na 140:")
-    update_warehouse_quantity(conn, 2, 140)
-            
-            
+        print("\nAktualizacja ilości sztuk w magazynie ID 2 na 140:")
+        update_warehouse_quantity(conn, 2, 140)
+    
     # Krok 5 - zamknięcie połączenia
     if conn:
         conn.close()
