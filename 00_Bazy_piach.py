@@ -196,16 +196,47 @@ def update_warehouse_quantity(conn, warehouse_id, new_quantity):
         print(f"✗ Błąd aktualizacji ilości sztuk: {e}")
 
     #DELETE wszystkich rekordów z tabel
-def clear_all_tables(conn):
-    """Usuń wszystkie rekordy z tabel (nie sam plik)"""
+def delete_where(conn, table, **kwargs):  #ZMIANA: użyj **kwargs
+    """
+    Usuń rekordy z tabeli na podstawie warunku
+    :param conn: Connection object
+    :param table: nazwa tabeli
+    :param kwargs: dict atrybutów i wartości (np. id=3)
+    :return:
+    """
+    qs = []
+    values = tuple()
+    for k, v in kwargs.items():
+        qs.append(f"{k}=?")
+        values += (v,)
+    q = " AND ".join(qs)
+    
+    sql = f'DELETE FROM {table} WHERE {q}'
     try:
         cur = conn.cursor()
-        cur.execute("DELETE FROM warehouses")  # Najpierw tabela zależna
-        cur.execute("DELETE FROM sensors")     # Potem tabela niezależna
+        cur.execute(sql, values)
         conn.commit()
-        print("✓ Wyczyszczone wszystkie tabele")
+        print(f"✓ Usunięte rekordy z tabeli {table}")
     except Error as e:
-        print(f"✗ Błąd czyszczenia tabel: {e}")
+        print(f"✗ Błąd usuwania: {e}")
+
+
+def delete_all(conn, table):  #ZMIANA: osobna funkcja do usuwania wszystkich
+    """
+    Usuń wszystkie rekordy z tabeli
+    :param conn: Connection object
+    :param table: nazwa tabeli
+    :return:
+    """
+    sql = f'DELETE FROM {table}'
+    try:
+        cur = conn.cursor()
+        cur.execute(sql)
+        conn.commit()
+        print(f"✓ Usunięte wszystkie rekordy z tabeli {table}")
+    except Error as e:
+        print(f"✗ Błąd usuwania: {e}")
+
     
 #=======================================================
 # Główna część skryptu
@@ -216,13 +247,8 @@ if __name__ == "__main__":
     # Krok 1 - nawiązanie połączenia z bazą danych
     conn = create_connection("sensors.db")
     print(f"✓ Połączenie utworzone {conn} - utworzone zostało sensors.db\n")
-    
-    #!======================================================
-    # Czyszczenie tabel jeśli baza już istniała - odkomentuj poniższą linię, aby wyczyścić tabele przy każdym uruchomieniu
-    #clear_all_tables(conn)
-    #!=======================================================
-
-        # Krok 2 - tworzenie tabeli sensors i warehouses
+                 
+    # Krok 2 - tworzenie tabeli sensors i warehouses
     create_sensors_table(conn)
     create_warehouses_table(conn)
 
@@ -241,6 +267,7 @@ if __name__ == "__main__":
     add_warehouse(conn, 2, "Magazyn B", 1, 2, 1, 1, 50)
     add_warehouse(conn, 3, "Magazyn C", 2, 1, 1, 1, 75)
     add_warehouse(conn, 4, "Magazyn A", 2, 2, 1, 1, 200)
+    
     # Krok 5 - pobieranie i wyświetlanie unikalnych czujników wraz z magazynami
     print("\nLista unikalnych czujników wraz w tabeli 'sensors' :")
     print("-"*70)
@@ -254,6 +281,26 @@ if __name__ == "__main__":
     # Krok 6 - aktualizacja ilości sztuk w magazynie (UPDATE)
         print("\nAktualizacja ilości sztuk w magazynie ID 2 na 140:")
         update_warehouse_quantity(conn, 2, 140)
+
+    # Test DELETE
+    print("\nTest DELETE:")
+    print("-"*40)
+
+    # Usuń konkretny magazyn
+    print("Usuwanie magazynu ID 1:")
+    delete_where(conn, "warehouses", id=1)
+
+    # Usuń czujnik z ID 2 (tylko czujnik)
+    print("\nUsuwanie czujnika ID 2:")
+    delete_where(conn, "sensors", id=2)
+
+#!======================================================
+# Czyszczenie tabel jeśli baza już istniała - odkomentuj poniższe linie, aby wyczyścić tabele przy każdym uruchomieniu
+
+# Opcjonalnie: usuń wszystkie rekordy z tabel przed dodaniem nowych danych
+#    delete_all(conn, "warehouses")
+#    delete_all(conn, "sensors")
+#!=======================================================
     
     # Krok 5 - zamknięcie połączenia
     if conn:
